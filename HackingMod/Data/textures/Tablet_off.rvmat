@@ -8,7 +8,7 @@ PixelShaderID="Super";
 VertexShaderID="Super";
 class Stage1
 {
-    texture="ExpansionCLExpanded\Data\textures\ECLE_Tablet_nohq.paa";
+    texture="HackingMod\Data\textures\Tablet_nohq.paa";
     uvSource="tex";
     class uvTransform
     {
@@ -56,7 +56,7 @@ class Stage4
 };
 class Stage5
 {
-    texture="ExpansionCLExpanded\Data\textures\ECLE_Tablet_smdi.paa";
+    texture="HackingMod\Data\textures\Tablet_smdi.paa";
     uvSource="tex";
     class uvTransform
     {

@@ -2,6 +2,8 @@ ref HackingModConfig m_HackingModConfig;
 
 static string HackingModConfigPATH = "$profile:\\HackingMod.json";
 
+ref NotificationSystem HackingModNotifications = new ref NotificationSystem();
+
 class HackingModConfig
 { 
 	//Default Values
@@ -18,9 +20,9 @@ class HackingModConfig
 			}else{ //File does not exist create file
 				HackableItems.Insert( new ref HackableItem("tent", 45, 600, 1));
 				HackableItems.Insert( new ref HackableItem("fence", 60, 600, 2));
-				HackableItems.Insert( new ref HackableItem("teir1", 60, 900, 2));
-				HackableItems.Insert( new ref HackableItem("teir2", 90, 1200, 3));
-				HackableItems.Insert( new ref HackableItem("teir3", 120, 1800, 4));
+				HackableItems.Insert( new ref HackableItem("bbp_t1", 60, 900, 2));
+				HackableItems.Insert( new ref HackableItem("bbp_t2", 90, 1200, 3));
+				HackableItems.Insert( new ref HackableItem("bbp_t3", 120, 1800, 5));
 				Save();
 			}
 		}
@@ -30,8 +32,23 @@ class HackingModConfig
 		JsonFileLoader<HackingModConfig>.JsonSaveFile(HackingModConfigPATH, this);
 	}
 	
+	bool CanHack(string ItemType, int Batteries){
+		HackableItem target = GetHackableItem( ItemType );
+		if ( target.Type != ""){
+			if (Batteries >= target.Batteries){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	float GetStartTime(string ItemType){
 		return GetHackableItem(ItemType).StartTime;
+	}
+	
+	
+	float GetHackTime(string ItemType){
+		return GetHackableItem(ItemType).HackingTime;
 	}
 	
 	HackableItem GetHackableItem( string ItemType){
@@ -52,7 +69,6 @@ class HackingModConfig
 	}
 	
 	void SetupComplete(){
-		Print("[ExpansionCodeLock] Running m_ExpansionCodeLockConfig SetupComplete");
 		//Save();
 	}
 };

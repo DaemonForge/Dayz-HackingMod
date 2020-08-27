@@ -3,11 +3,10 @@ class ActionHackCodeLockCB extends ActionContinuousBaseCB {
 		float circleTime = 60; 
 		if (m_ActionData)
 		{		
-			if (m_ActionData.m_Target)
-			{
-				ItemBase targetObject = ItemBase.Cast(m_ActionData.m_Target.GetObject());
-				if (targetObject){
-					
+			if (m_ActionData.m_Target){
+				ItemBase hacking_target;
+				if (Class.CastTo(hacking_target, m_ActionData.m_Target.GetObject()) || Class.CastTo(hacking_target, m_ActionData.m_Target.GetParent()) ){
+					circleTime = GetHackingModConfig().GetStartTime(hacking_target.GetType());
 				}
 			}
 		}
@@ -18,8 +17,8 @@ class ActionHackCodeLockCB extends ActionContinuousBaseCB {
 class ActionHackCodeLock : ActionContinuousBase {
 
 	bool continueHack = false;
-    void ActionHackCodeLockOnDoor() {
-        m_CallbackClass = ActionHackCodeLockOnDoorCB;
+    void ActionHackCodeLock() {
+        m_CallbackClass = ActionHackCodeLockCB;
         m_StanceMask = DayZPlayerConstants.STANCEMASK_CROUCH;
         m_CommandUID = DayZPlayerConstants.CMD_ACTIONFB_INTERACT;
         m_FullBody = true;
@@ -43,14 +42,14 @@ class ActionHackCodeLock : ActionContinuousBase {
 		if (Class.CastTo(hacking_target, target.GetObject()) || Class.CastTo(hacking_target, target.GetParent()) ){
 			CodeLock codelock = CodeLock.Cast(hacking_target.GetAttachmentByConfigTypeName("CodeLock"));
 			if (codelock && tablet){
-				if (codelock.GetLockState() && tablet.WasHackingInterrupted() && tablet.ECLE_GetHackID() == hacking_target.ECLE_GetHackID()) {
+				if (codelock.GetLockState() && tablet.WasHackingInterrupted() && tablet.GetHackID() == hacking_target.GetHackID()) {
 					continueHack = true;
-					if ( tablet.CountBatteries() >= GetHackingModConfig().) {
+					if ( GetHackingModConfig().CanHack( hacking_target.GetType(),tablet.CountBatteries())) {
 						return true;
 					}
-				}else if (codelock.GetLockState() && (!tablet.HasHackingStarted() || tablet.WasHackingInterrupted())) {
+				} else if (codelock.GetLockState() && (!tablet.HasHackingStarted() || tablet.WasHackingInterrupted())) {
 					continueHack = false;
-					if ( tablet.CountBatteries() >= GetHackingModConfig().) {
+					if ( GetHackingModConfig().CanHack( hacking_target.GetType(), tablet.CountBatteries()) ) {
 						return true;
 					}
 				}
@@ -61,18 +60,19 @@ class ActionHackCodeLock : ActionContinuousBase {
 
     override void OnFinishProgressServer(ActionData action_data) {
 
-        ItemBase target = ItemBase.Cast(action_data.m_Target.GetObject());    
-		ECLETablet tablet = ECLETablet.Cast(action_data.m_MainItem);
+   		ItemBase hacking_target;
+		DecoderTablet tablet = DecoderTablet.Cast(action_data.m_MainItem);
 		PlayerBase sourcePlayer = PlayerBase.Cast(action_data.m_Player);
-
-        if (tablet && sourcePlayer && target) {
-            tablet.StartHackServer(target, sourcePlayer);
-        }
+		if (Class.CastTo(hacking_target, action_data.m_Target.GetObject()) || Class.CastTo(hacking_target, action_data.m_Target.GetParent()) ){
+	        if (tablet && sourcePlayer && hacking_target) {
+	            tablet.StartHackServer(hacking_target, sourcePlayer);
+	        }
+		}
     }
 	
 	protected void OnFinishProgressClient( ActionData action_data )
 	{  
-		ECLETablet tablet = ECLETablet.Cast(action_data.m_MainItem);
+		DecoderTablet tablet = DecoderTablet.Cast(action_data.m_MainItem);
 
         if (tablet) {
             tablet.StartHackClient();

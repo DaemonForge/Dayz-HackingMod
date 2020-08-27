@@ -16,8 +16,7 @@ class DecoderTablet extends ItemBase{
 	{
 		super.SetActions();
 
-        AddAction(ActionHackCodeLockOnTent);
-        AddAction(ActionHackCodeLockOnDoor);
+        AddAction(ActionHackCodeLock);
     }
 
 	void DecoderTablet(){
@@ -81,42 +80,40 @@ class DecoderTablet extends ItemBase{
 	
 	void HackCompletedClient(){
 		m_HackingCompletedLocal = m_HackingCompleted;
-		SEffectManager.PlaySoundOnObject("Expansion_CodeLock_Unlock_SoundSet", this);
+		SEffectManager.PlaySoundOnObject("combinationlock_open_SoundSet", this);
 		SetAnimationPhase("top",0);
 	}
 	
 	
-	void StartHackServer(ItemBase hackingTarget, PlayerBase hacker){
-		PlayerBase Hacker = PlayerBase.Cast(hacker);
-		ItemBase HackingTarget = ItemBase.Cast(hackingTarget);
-		if (Hacker && HackingTarget){
+	void StartHackServer(ItemBase HackingTarget, PlayerBase Hacker){
+		PlayerBase hacker = PlayerBase.Cast(Hacker);
+		ItemBase hackingTarget = ItemBase.Cast(HackingTarget);
+		string resumed = " has started";
+		if (hacker && hackingTarget){
 			m_HackingCompleted = false;
 			m_HackingInterrupted = false;
 			
-			if ( HackingTarget.ECLE_GetHackID() != this.ECLE_GetHackID() || HackingTarget.ECLE_GetHackID() == 0){ //Starting A hack on a new object
+			if ( hackingTarget.GetHackID() != this.GetHackID() || hackingTarget.GetHackID() == 0){ //Starting A hack on a new object
 				m_HackingStarted = true;
-				m_HackTimeRemaining = GetHackingModConfig().HackingTimeTents * 1000;
-				
-				if( BaseBuildingBase.Cast(hackingTarget)){
-					m_HackTimeRemaining = GetHackingModConfig().HackingTimeDoors * 1000;
-				}
+				m_HackTimeRemaining = GetHackingModConfig().GetHackTime(hackingTarget.GetType()) * 1000;
 				
 				int HackID = GetGame().GetTime();
 				HackID = HackID * 10000;
 				HackID = HackID + Math.RandomInt(0,10000);
-				this.ECLE_HackInit(HackID);
-				HackingTarget.ECLE_HackInit(HackID);
-				if (Hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
-					Print("[CodeLockExpanded][Raid] " + Hacker.GetIdentity().GetName() + "(" +  Hacker.GetIdentity().GetPlainId() + ") has started hacking " + HackingTarget.GetType() + " with ID: " + HackID + " at " + HackingTarget.GetPosition());
+				this.HackInit(HackID);
+				hackingTarget.HackInit(HackID);
+				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
+					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") has started hacking " + hackingTarget.GetType() + " with ID: " + HackID + " at " + hackingTarget.GetPosition());
 				}
 			} else {
-				this.ECLE_HackInit(ECLE_GetHackID());
-				HackingTarget.ECLE_HackInit(ECLE_GetHackID());
-				if (Hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
-					Print("[CodeLockExpanded][Raid] " + Hacker.GetIdentity().GetName() + "(" +  Hacker.GetIdentity().GetPlainId() + ") has resumed hacking " + HackingTarget.GetType() + " with ID: " + ECLE_GetHackID() + " at " + HackingTarget.GetPosition());
+				this.HackInit(GetHackID());
+				hackingTarget.HackInit(GetHackID());
+				resumed = " has resumed";
+				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
+					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") has resumed hacking " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition());
 				}
 			}
-			SendPlayerMessage(Hacker, "Hack Started", "The hacking of " + hackingTarget.GetDisplayName() + " has started");
+			SendPlayerMessage(hacker, "Hack Started", "The hacking of " + hackingTarget.GetDisplayName() + resumed);
 			GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(this.CheckHackProgress, 2000, false, hackingTarget, hacker);
 			SetSynchDirty();
 		}
@@ -127,47 +124,54 @@ class DecoderTablet extends ItemBase{
 		SEffectManager.PlaySoundOnObject("defibrillator_ready_SoundSet", this);
 	}
 	
-	void CheckHackProgress(ItemBase hackingTarget, PlayerBase hacker){
-		PlayerBase Hacker = PlayerBase.Cast(hacker);
-		ItemBase HackingTarget = ItemBase.Cast(hackingTarget);
-		if (Hacker && HackingTarget){
-			
-			TentBase tent = TentBase.Cast(hackingTarget); 
-			BaseBuildingBase door = BaseBuildingBase.Cast(hackingTarget);
-			
-			if (door && CountBatteries() < GetHackingModConfig().BatteriesDoors){
+	void CheckHackProgress(ItemBase HackingTarget, PlayerBase Hacker){
+		PlayerBase hacker = PlayerBase.Cast(Hacker);
+		ItemBase hackingTarget = ItemBase.Cast(HackingTarget);
+		if (hacker && hackingTarget){
+            CodeLock codelock = CodeLock.Cast(hackingTarget.GetAttachmentByConfigTypeName("CodeLock"));
+			HackableItem hackingData = GetHackingModConfig().GetHackableItem( hackingTarget.GetType() );
+            if ( codelock && hackingData.Type != "") {
+				if (!GetHackingModConfig().CanHack( hackingTarget.GetType(), this.CountBatteries())){
+					m_HackingInterrupted = true;
+					if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
+						Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to Missing Batteries");
+					}
+				}
+				if (!codelock.GetLockState()){
+					m_HackingInterrupted = true;
+					if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
+						Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock being unlocked");
+					}
+				}
+				float DoInterrupt = Math.RandomFloat(0,1);
+				float InterruptChance = hackingData.ChanceOfInterrupt;
+				if (DoInterrupt < InterruptChance){
+					m_HackingInterrupted = true;
+					if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
+						Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to interrupt Chance");
+					}
+				}
+			} else { //Code Lock Removed
 				m_HackingInterrupted = true;
+				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
+					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock missing");
+				}
 			}
-			if (tent && CountBatteries() < GetHackingModConfig().BatteriesTents){
-				m_HackingInterrupted = true;
-			}
-			
-			if (!HackingTarget.IsLocked()){
-				m_HackingInterrupted = true;
-			}
-			
-			float DoInterrupt = Math.RandomFloat(0,1);
-			float InterruptChance = GetHackingModConfig().ChanceOfInterrupt;
-			if (DoInterrupt < InterruptChance){
-				m_HackingInterrupted = true;
-			}
-			
-			
-			if (!m_HackingInterrupted && !HackingTarget.IsRuined() && vector.Distance(HackingTarget.GetPosition(), Hacker.GetPosition()) < 10 && Hacker.GetItemInHands() == this){
+			if (!m_HackingInterrupted && !hackingTarget.IsRuined() && vector.Distance(hackingTarget.GetPosition(), hacker.GetPosition()) < 10 && hacker.GetItemInHands() == this){
 				m_HackTimeRemaining = m_HackTimeRemaining - 2000;
 				if (m_HackTimeRemaining > 2000){
-					GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(this.CheckHackProgress, 2000, false, hackingTarget, Hacker);
+					GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(this.CheckHackProgress, 2000, false, hackingTarget, hacker);
 				} else if (m_HackTimeRemaining > 500){ //if its this close to finishing just finish
-					GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(this.CheckHackProgress, m_HackTimeRemaining, false, hackingTarget, Hacker);
+					GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(this.CheckHackProgress, m_HackTimeRemaining, false, hackingTarget, hacker);
 				} else {
 					m_HackTimeRemaining = 0; //incase it was made negitive
-					GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(this.HackCompleted, 200, false, hackingTarget, Hacker);
+					GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(this.HackCompleted, 200, false, hackingTarget, hacker);
 				}
 			} else {
-				HackingTarget.ECLE_InterruptHack();
-				this.ECLE_InterruptHack();
+				hackingTarget.InterruptHack();
+				this.InterruptHack();
 				m_HackingInterrupted = true;
-				SendPlayerMessage(Hacker, "Hack Interrupted", "The hacking of " + hackingTarget.GetDisplayName() + " has been interrupted");
+				SendPlayerMessage(hacker, "Hack Interrupted", "The hacking of " + hackingTarget.GetDisplayName() + " has been interrupted");
 			}
 		}else{
 			m_HackingStarted = false;
@@ -176,66 +180,32 @@ class DecoderTablet extends ItemBase{
 		SetSynchDirty();
 	}
 	
-	void HackCompleted(ItemBase hackingTarget, PlayerBase hacker){
-		PlayerBase Hacker = PlayerBase.Cast(hacker);
-		BaseBuildingBase HackingTarget = BaseBuildingBase.Cast(hackingTarget);
+	void HackCompleted(ItemBase HackingTarget, PlayerBase Hacker){
+		PlayerBase hacker = PlayerBase.Cast(Hacker);
+		ItemBase hackingTarget = ItemBase.Cast(HackingTarget);
 		float itemMaxHealth = 0;
-		float toolDamage = GetHackingModConfig().HackSawDamage;
-        TentBase tent = TentBase.Cast(hackingTarget); 
-        if (tent && Hacker) {
-            ExpansionCodeLock codelock = ExpansionCodeLock.Cast(tent.FindAttachmentBySlotName( "Att_ExpansionCodeLock" ));
-			
-            if (codelock ) {
+        if (hackingTarget && hacker) {
+            CodeLock codelock = CodeLock.Cast(hackingTarget.GetAttachmentByConfigTypeName("CodeLock"));
+			HackableItem hackingData = GetHackingModConfig().GetHackableItem( hackingTarget.GetType());
+            if ( codelock && hackingData.Type != "") {
 				itemMaxHealth = codelock.GetMaxHealth("", "Health");
 				itemMaxHealth++;
 				codelock.AddHealth("", "Health", -itemMaxHealth);
-				toolDamage++;
-                tent.Unlock();
-                tent.SetCode( "" );
-				tent.GetInventory().DropEntity(InventoryMode.SERVER, tent, codelock);
+                codelock.UnlockServer(hacker, hackingTarget);
+				hackingTarget.GetInventory().DropEntity(InventoryMode.SERVER, hackingTarget, codelock);
 				#ifdef HEROESANDBANDITSMOD
-					if (Hacker.GetIdentity()){
-						GetHeroesAndBandits().NewPlayerAction(Hacker.GetIdentity().GetPlainId(), "HackExpansionCodeLockDoorRaid");
+					if (hacker.GetIdentity()){
+						GetHeroesAndBandits().NewPlayerAction(hacker.GetIdentity().GetPlainId(), "Hack" + hackingData.Type + "Raid");
 					}
 				#endif
-				if (Hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
-					Print("[CodeLockExpanded][Raid] " + Hacker.GetIdentity().GetName() + "(" +  Hacker.GetIdentity().GetPlainId() + ") Hacked  " + tent.GetType() + " with ID: " + ECLE_GetHackID() + " at " + tent.GetPosition());
+				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
+					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") Hacked  " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition());
 				}
-				this.AddHealth("", "Health", -GetHackingModConfig().TabletDamageTents);
-				DestoryBatteries( GetHackingModConfig().BatteriesTents );
+				this.AddHealth("", "Health", -hackingData.TabletDamage);
+				DestoryBatteries( hackingData.Batteries );
 				
-				tent.ECLE_CompleteHack();
-				this.ECLE_CompleteHack();
-				
-				m_HackingStarted = false;
-				m_HackingInterrupted = false;
-				m_HackingCompleted = true;
-            }
-        }
-		if (HackingTarget && Hacker) {
-            ExpansionCodeLock codelock2 = ExpansionCodeLock.Cast(HackingTarget.GetAttachmentByConfigTypeName("ExpansionCodeLock"));
-			
-            if (codelock2 ) {
-				itemMaxHealth = codelock2.GetMaxHealth("", "Health");
-				itemMaxHealth++;
-				codelock2.AddHealth("", "Health", -itemMaxHealth);
-				toolDamage++;
-                HackingTarget.Unlock();
-                HackingTarget.SetCode( "" );
-				HackingTarget.GetInventory().DropEntity(InventoryMode.SERVER, HackingTarget, codelock2);
-				#ifdef HEROESANDBANDITSMOD
-					if (Hacker.GetIdentity()){
-						GetHeroesAndBandits().NewPlayerAction(Hacker.GetIdentity().GetPlainId(), "HackExpansionCodeLockTentRaid");
-					}
-				#endif
-				if (Hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
-					Print("[CodeLockExpanded][Raid] " + Hacker.GetIdentity().GetName() + "(" +  Hacker.GetIdentity().GetPlainId() + ") Hacked  " + HackingTarget.GetType() + " with ID: " + ECLE_GetHackID() + " at " + HackingTarget.GetPosition());
-				}
-				this.AddHealth("", "Health", -GetHackingModConfig().TabletDamageDoors);
-				DestoryBatteries( GetHackingModConfig().BatteriesDoors );
-				
-				HackingTarget.ECLE_CompleteHack();
-				this.ECLE_CompleteHack();
+				this.CompleteHack();
+				hackingTarget.CompleteHack();
 				
 				m_HackingStarted = false;
 				m_HackingInterrupted = false;
@@ -261,15 +231,15 @@ class DecoderTablet extends ItemBase{
 		m_TabletON = true;
 		m_TabletONLocal = true;
 		if(!IsRuined()){
-			SetObjectTexture(0, "ExpansionCLExpanded\\Data\\textures\\ECLE_tablet_on_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("zbytek"), "ExpansionCLExpanded\\Data\\textures\\ECLE_tablet_on_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("tablet_on"), "ExpansionCLExpanded\\Data\\textures\\ECLE_tablet_on_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("tablef_off"), "ExpansionCLExpanded\\Data\\textures\\ECLE_tablet_on_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("top"), "ExpansionCLExpanded\\Data\\textures\\ECLE_tablet_on_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("background"), "ExpansionCLExpanded\\Data\\textures\\ECLE_tablet_on_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("screen"), "ExpansionCLExpanded\\Data\\textures\\ECLE_tablet_on_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("backscreen"), "ExpansionCLExpanded\\Data\\textures\\ECLE_tablet_on_co.paa");
-			SetObjectMaterial( GetHiddenSelectionIndex("backscreen"), "ExpansionCLExpanded\\Data\\textures\\ECLE_Tablet_screen_on.rvmat" );
+			SetObjectTexture(0, "HackingMod\\Data\\textures\\tablet_on_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("zbytek"), "HackingMod\\Data\\textures\\tablet_on_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("tablet_on"), "HackingMod\\Data\\textures\\tablet_on_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("tablef_off"), "HackingMod\\Data\\textures\\tablet_on_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("top"), "HackingMod\\Data\\textures\\tablet_on_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("background"), "HackingMod\\Data\\textures\\tablet_on_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("screen"), "HackingMod\\Data\\textures\\tablet_on_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("backscreen"), "HackingMod\\Data\\textures\\tablet_on_co.paa");
+			SetObjectMaterial( GetHiddenSelectionIndex("backscreen"), "HackingMod\\Data\\textures\\Tablet_screen_on.rvmat" );
 		}
 	}
 	
@@ -277,14 +247,14 @@ class DecoderTablet extends ItemBase{
 		m_TabletON = false;
 		m_TabletONLocal = false;
 		if(!IsRuined()){
-			SetObjectTexture(0, "ExpansionCLExpanded\\Data\\textures\\ECLE_Tablet_off_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("zbytek"), "ExpansionCLExpanded\\Data\\textures\\ECLE_Tablet_off_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("tablet_on"), "ExpansionCLExpanded\\Data\\textures\\ECLE_Tablet_off_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("tablef_off"), "ExpansionCLExpanded\\Data\\textures\\ECLE_Tablet_off_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("top"), "ExpansionCLExpanded\\Data\\textures\\ECLE_Tablet_off_co.paa");
-			SetObjectTexture( GetHiddenSelectionIndex("background"), "ExpansionCLExpanded\\Data\\textures\\ECLE_Tablet_off_co.paa");
-			SetObjectTexture(GetHiddenSelectionIndex("screen"), "ExpansionCLExpanded\\Data\\textures\\ECLE_Tablet_off_co.paa");
-			SetObjectMaterial( GetHiddenSelectionIndex("backscreen"), "ExpansionCLExpanded\\Data\\textures\\ECLE_Tablet_on.rvmat" );
+			SetObjectTexture(0, "HackingMod\\Data\\textures\\Tablet_off_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("zbytek"), "HackingMod\\Data\\textures\\Tablet_off_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("tablet_on"), "HackingMod\\Data\\textures\\Tablet_off_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("tablef_off"), "HackingMod\\Data\\textures\\Tablet_off_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("top"), "HackingMod\\Data\\textures\\Tablet_off_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("background"), "HackingMod\\Data\\textures\\Tablet_off_co.paa");
+			SetObjectTexture( GetHiddenSelectionIndex("screen"), "HackingMod\\Data\\textures\\Tablet_off_co.paa");
+			SetObjectMaterial( GetHiddenSelectionIndex("backscreen"), "HackingMod\\Data\\textures\\Tablet_on.rvmat" );
 		}
 	}
 	
@@ -352,28 +322,34 @@ class DecoderTablet extends ItemBase{
 	
 	int CountBatteries(){
 		int count = 0;
-		ECLETabletBattery tempBattery1;
-		ECLETabletBattery tempBattery2;
-		ECLETabletBattery tempBattery3;
-		ECLETabletBattery tempBattery4;
+		TabletBattery tempBattery1;
+		TabletBattery tempBattery2;
+		TabletBattery tempBattery3;
+		TabletBattery tempBattery4;
+		TabletBattery tempBattery5;
 		
-		if (Class.CastTo(tempBattery1, FindAttachmentBySlotName("Att_ECLETabletBattery_1"))){
+		if (Class.CastTo(tempBattery1, FindAttachmentBySlotName("Att_TabletBattery_1"))){
 			if (!tempBattery1.IsRuined()){
 				count++;
 			}
 		}
-		if (Class.CastTo(tempBattery2, FindAttachmentBySlotName("Att_ECLETabletBattery_2"))){
+		if (Class.CastTo(tempBattery2, FindAttachmentBySlotName("Att_TabletBattery_2"))){
 			if (!tempBattery2.IsRuined()){
 				count++;
 			}
 		}
-		if (Class.CastTo(tempBattery3, FindAttachmentBySlotName("Att_ECLETabletBattery_3"))){
+		if (Class.CastTo(tempBattery3, FindAttachmentBySlotName("Att_TabletBattery_3"))){
 			if (!tempBattery3.IsRuined()){
 				count++;
 			}
 		}
-		if (Class.CastTo(tempBattery4, FindAttachmentBySlotName("Att_ECLETabletBattery_4"))){
+		if (Class.CastTo(tempBattery4, FindAttachmentBySlotName("Att_TabletBattery_4"))){
 			if (!tempBattery4.IsRuined()){
+				count++;
+			}
+		}
+		if (Class.CastTo(tempBattery5, FindAttachmentBySlotName("Att_TabletBattery_5"))){
+			if (!tempBattery5.IsRuined()){
 				count++;
 			}
 		}
@@ -382,12 +358,23 @@ class DecoderTablet extends ItemBase{
 	
 	void DestoryBatteries( int number){
 		int count = 0;
-		ECLETabletBattery tempBattery1;
-		ECLETabletBattery tempBattery2;
-		ECLETabletBattery tempBattery3;
-		ECLETabletBattery tempBattery4;
+		TabletBattery tempBattery1;
+		TabletBattery tempBattery2;
+		TabletBattery tempBattery3;
+		TabletBattery tempBattery4;
+		TabletBattery tempBattery5;
 		
-		if (Class.CastTo(tempBattery4, FindAttachmentBySlotName("Att_ECLETabletBattery_4"))){
+		
+		if (Class.CastTo(tempBattery5, FindAttachmentBySlotName("Att_TabletBattery_5"))){
+			if (!tempBattery5.IsRuined()){
+				tempBattery5.AddHealth("", "Health", -21);
+				count++;
+			}
+			if (count >= number){
+				return;
+			}
+		}
+		if (Class.CastTo(tempBattery4, FindAttachmentBySlotName("Att_TabletBattery_4"))){
 			if (!tempBattery4.IsRuined()){
 				tempBattery4.AddHealth("", "Health", -21);
 				count++;
@@ -396,7 +383,7 @@ class DecoderTablet extends ItemBase{
 				return;
 			}
 		}
-		if (Class.CastTo(tempBattery3, FindAttachmentBySlotName("Att_ECLETabletBattery_3"))){
+		if (Class.CastTo(tempBattery3, FindAttachmentBySlotName("Att_TabletBattery_3"))){
 			if (!tempBattery3.IsRuined()){
 				tempBattery3.AddHealth("", "Health", -21);
 				count++;
@@ -405,7 +392,7 @@ class DecoderTablet extends ItemBase{
 				return;
 			}
 		}
-		if (Class.CastTo(tempBattery2, FindAttachmentBySlotName("Att_ECLETabletBattery_2"))){
+		if (Class.CastTo(tempBattery2, FindAttachmentBySlotName("Att_TabletBattery_2"))){
 			if (!tempBattery2.IsRuined()){
 				tempBattery2.AddHealth("", "Health", -21);
 				count++;
@@ -414,7 +401,7 @@ class DecoderTablet extends ItemBase{
 				return;
 			}
 		}
-		if (Class.CastTo(tempBattery1, FindAttachmentBySlotName("Att_ECLETabletBattery_1"))){
+		if (Class.CastTo(tempBattery1, FindAttachmentBySlotName("Att_TabletBattery_1"))){
 			if (!tempBattery1.IsRuined()){
 				tempBattery1.AddHealth("", "Health", -21);
 				count++;
@@ -427,7 +414,7 @@ class DecoderTablet extends ItemBase{
 	
 	override void EEItemAttached(EntityAI item, string slot_name){
 		super.EEItemAttached(item, slot_name);
-		if (GetGame().IsServer() && (slot_name == "Att_ECLETabletBattery_1" || slot_name == "Att_ECLETabletBattery_2" || slot_name == "Att_ECLETabletBattery_3" || slot_name == "Att_ECLETabletBattery_4")){
+		if (GetGame().IsServer() && (slot_name == "Att_TabletBattery_1" || slot_name == "Att_TabletBattery_2" || slot_name == "Att_TabletBattery_3" || slot_name == "Att_TabletBattery_4" || slot_name == "Att_TabletBattery_5")){
 			m_TabletON = true;
 			SetSynchDirty();
 		}
@@ -436,7 +423,7 @@ class DecoderTablet extends ItemBase{
 	override void EEItemDetached(EntityAI item, string slot_name)
 	{
 		super.EEItemDetached(item, slot_name);
-		if (GetGame().IsServer() && (slot_name == "Att_ECLETabletBattery_1" || slot_name == "Att_ECLETabletBattery_2" || slot_name == "Att_ECLETabletBattery_3"  || slot_name == "Att_ECLETabletBattery_4" )){
+		if (GetGame().IsServer() && (slot_name == "Att_TabletBattery_1" || slot_name == "Att_TabletBattery_2" || slot_name == "Att_TabletBattery_3"  || slot_name == "Att_TabletBattery_5"  || slot_name == "Att_TabletBattery_5")){
 			if (CountBatteries() == 0){
 				m_TabletON = false;
 				SetSynchDirty();
@@ -450,8 +437,8 @@ class DecoderTablet extends ItemBase{
 		if (Hacker.GetIdentity()){
 			string Heading = heading;
 			string Message = text;
-			string Icon = "ExpansionCLExpanded/GUI/Images/hacking.paa";
-			GetNotificationSystem().CreateNotification(new ref StringLocaliser(Heading), new ref StringLocaliser(Message), Icon, -938286307, 15, Hacker.GetIdentity());
+			string Icon = "HackingMod/GUI/Images/hacking.paa";
+			HackingModNotifications.CreateNotification(new ref StringLocaliser(Heading), new ref StringLocaliser(Message), Icon, -938286307, 15, Hacker.GetIdentity());
 		}
 	}
 	

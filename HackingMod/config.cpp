@@ -21,9 +21,16 @@ class CfgMods
         version="0.1";
         extra=0;
         type="mod";
-	    dependencies[]={ "World", "Mission"};
+	    dependencies[]={ "Game", "World", "Mission"};
 	    class defs
 	    {
+			class gameScriptModule
+            {
+				value = "";
+                files[]={
+					"HackingMod/scripts/Common"
+					};
+            };
 			class worldScriptModule
             {
                 value="";
@@ -64,12 +71,19 @@ class CfgSlots
 	{
 		name = "Att_TabletBattery_3";
 		displayName = "Tablet Battery";
-		selection = "att_ECLETabletBattery";
+		selection = "att_TabletBattery";
 		ghostIcon = "batteryd";
 	};
 	class Slot_Att_TabletBattery_4
 	{
 		name = "Att_TabletBattery_4";
+		displayName = "Tablet Battery";
+		selection = "att_TabletBattery";
+		ghostIcon = "batteryd";
+	};
+	class Slot_Att_TabletBattery_5
+	{
+		name = "Att_TabletBattery_5";
 		displayName = "Tablet Battery";
 		selection = "att_TabletBattery";
 		ghostIcon = "batteryd";
@@ -91,7 +105,7 @@ class CfgVehicles
 		itemSize[] = {3,2};
 		weight = 800;
 		rotationFlags = 1;
-		attachments[] = {"Att_TabletBattery_1", "Att_TabletBattery_2", "Att_TabletBattery_3","Att_TabletBattery_4"};
+		attachments[] = {"Att_TabletBattery_1", "Att_TabletBattery_2", "Att_TabletBattery_3","Att_TabletBattery_4","Att_TabletBattery_5"};
 		hiddenSelections[] = 
 		{        
 			"zbytek",
@@ -141,18 +155,18 @@ class CfgVehicles
 		scope = 2;
 		displayName  = "Tablet Battery";
 		descriptionShort  = "A Battery to put in tablets";
-		model = "DecoderTablet\Data\TabletBattery.p3d";
+		model = "HackingMod\Data\TabletBattery.p3d";
 		itemSize[] = {1,1};
 		weight = 100;
 		rotationFlags = 1;
-		inventorySlot[] = {"Att_TabletBattery_1", "Att_TabletBattery_2", "Att_TabletBattery_3","Att_TabletBattery_4"};
+		inventorySlot[] = {"Att_TabletBattery_1", "Att_TabletBattery_2", "Att_TabletBattery_3","Att_TabletBattery_4","Att_TabletBattery_5"};
 		hiddenSelections[] = 
 		{        
 			"zbytek"
 		};
 		hiddenSelectionsTextures[] = 
 		{
-			"DecoderTablet\Data\textures\_Battery_co.paa" 
+			"HackingMod\Data\textures\Battery_co.paa" 
 		};        
 		class DamageSystem
 		{
@@ -161,7 +175,7 @@ class CfgVehicles
 				class Health
 				{
 					hitpoints = 20;
-					healthLevels[] = {{1.0,{"DecoderTablet\Data\textures\Battery.rvmat"}},{0.7,{"DecoderTablet\Data\textures\Battery.rvmat"}},{0.5,{"DecoderTablet\Data\textures\Battery.rvmat"}},{0.3,{"DecoderTablet\Data\textures\Battery.rvmat"}},{0.0,{"DecoderTablet\Data\textures\Battery_Ruined.rvmat"}}};
+					healthLevels[] = {{1.0,{"HackingMod\Data\textures\Battery.rvmat"}},{0.7,{"HackingMod\Data\textures\Battery.rvmat"}},{0.5,{"HackingMod\Data\textures\Battery.rvmat"}},{0.3,{"HackingMod\Data\textures\Battery.rvmat"}},{0.0,{"HackingMod\Data\textures\Battery_Ruined.rvmat"}}};
 				};
 			};
 		};
