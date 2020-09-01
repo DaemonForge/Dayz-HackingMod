@@ -45,6 +45,7 @@ FrameWidgetClass rootFrame {
      text "Hacking Started"
      font "HackingMod/GUI/Fonts/DogicaPixel/DogicaPixel18"
      "text color" 0.0784 0.7059 0.2353 1
+     "exact text" 1
      "size to text h" 0
      "size to text v" 0
      "text valign" center
