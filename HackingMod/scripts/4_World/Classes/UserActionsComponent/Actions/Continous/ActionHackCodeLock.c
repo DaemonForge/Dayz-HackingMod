@@ -42,9 +42,9 @@ class ActionHackCodeLock : ActionContinuousBase {
 		if (Class.CastTo(hacking_target, target.GetObject()) || Class.CastTo(hacking_target, target.GetParent()) ){
 			CodeLock codelock = CodeLock.Cast(hacking_target.GetAttachmentByConfigTypeName("CodeLock"));
 			if (codelock && tablet){
-				if (codelock.GetLockState() && tablet.WasHackingInterrupted() && tablet.GetHackID() == hacking_target.GetHackID()) {
+				if (codelock.GetLockState() && tablet.WasHackingInterrupted() && tablet.GetHackID() != 0 && tablet.GetHackID() == hacking_target.GetHackID()) {
 					continueHack = true;
-					if ( GetHackingModConfig().CanHack( hacking_target.GetType(),tablet.CountBatteries())) {
+					if ( GetHackingModConfig().CanHack( hacking_target.GetType(), tablet.CountBatteries()) ) {
 						return true;
 					}
 				} else if (codelock.GetLockState() && (!tablet.HasHackingStarted() || tablet.WasHackingInterrupted())) {

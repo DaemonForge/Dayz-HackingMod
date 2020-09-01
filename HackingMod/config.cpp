@@ -28,7 +28,8 @@ class CfgMods
             {
 				value = "";
                 files[]={
-					"HackingMod/scripts/Common"
+					"HackingMod/scripts/Common",
+					"HackingMod/scripts/3_Game"
 					};
             };
 			class worldScriptModule
@@ -64,10 +65,10 @@ class CfgSlots
 	{
 		name = "Att_TabletBattery_2";
 		displayName = "Tablet Battery";
-		selection = "att_ECLETabletBattery";
+		selection = "att_TabletBattery";
 		ghostIcon = "batteryd";
 	};
-	class Slot_Att_ECLETabletBattery_3
+	class Slot_Att_TabletBattery_3
 	{
 		name = "Att_TabletBattery_3";
 		displayName = "Tablet Battery";

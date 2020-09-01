@@ -1,13 +1,14 @@
-ref HackingModConfig m_HackingModConfig;
-
-static string HackingModConfigPATH = "$profile:\\HackingMod.json";
-
-ref NotificationSystem HackingModNotifications = new ref NotificationSystem();
-
 class HackingModConfig
 { 
+
+	private static string HackingModConfigPATH = "$profile:\\HackingMod.json";
 	//Default Values
 	string ConfigVersion = "1";
+	// 0 - Native Notification
+	// 1 - Chat Notification
+	// 2 - BuiltIn Notification
+	// 3 - VPP Notification
+	int Notification = 2; 
 	ref array<ref HackableItem> HackableItems = new ref array<ref HackableItem>;
 	bool ScriptLogging = true;
 		
@@ -25,6 +26,8 @@ class HackingModConfig
 				HackableItems.Insert( new ref HackableItem("bbp_t3", 120, 1800, 5));
 				Save();
 			}
+		} else {
+			Print("[HackingMod] Trying to load settings before they were received by the server.");
 		}
 	}
 	
@@ -91,15 +94,4 @@ class HackableItem {
 		Batteries = bat;
 	}
 
-};
-
-//Helper function to return Config
-static ref HackingModConfig GetHackingModConfig()
-{
-	if (!m_HackingModConfig)
-	{
-		m_HackingModConfig = new HackingModConfig;
-		m_HackingModConfig.Load();
-	}
-	return m_HackingModConfig;
 };

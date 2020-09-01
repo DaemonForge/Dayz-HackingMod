@@ -1,0 +1,16 @@
+MetaFileClass {
+ Name "{C4475DD36B2A11F1}ComputerFont/DogicaPixel/DogicaPixel16.edds"
+ Author "desktop-tdpoqud"
+ ChangeDate -1368577761
+ Configurations {
+  TGAResourceClass PC {
+   SourceFile "DogicaPixel16.tga"
+  }
+  TGAResourceClass XBOX_ONE : PC {
+  }
+  TGAResourceClass PS4 : PC {
+  }
+  TGAResourceClass LINUX : PC {
+  }
+ }
+}

@@ -1,0 +1,72 @@
+FrameWidgetClass rootFrame {
+ clipchildren 0
+ ignorepointer 1
+ position 0.05 0.04847
+ size 0.9 0.9
+ hexactpos 0
+ vexactpos 0
+ hexactsize 0
+ vexactsize 0
+ {
+  PanelWidgetClass Notification {
+   clipchildren 1
+   ignorepointer 1
+   color 0.0471 0.0471 0.0471 0.9373
+   position 8 256
+   size 332 82
+   hexactpos 1
+   vexactpos 1
+   hexactsize 1
+   vexactsize 1
+   style ToolbarWidget
+   {
+    ImageWidgetClass Icon {
+     ignorepointer 1
+     color 1 1 1 0.7922
+     position 7 7
+     size 70 70
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     mode blend
+     stretch 1
+     nocache 1
+    }
+    TextWidgetClass Heading {
+     ignorepointer 1
+     color 0.0784 0.7059 0.2353 1
+     position 84 7
+     size 244 32
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     text "Hacking Started"
+     font "HackingMod/GUI/Fonts/DogicaPixel/DogicaPixel18"
+     "text color" 0.0784 0.7059 0.2353 1
+     "size to text h" 0
+     "size to text v" 0
+     "text valign" center
+    }
+    MultilineTextWidgetClass Message {
+     ignorepointer 1
+     color 0.0784 0.7059 0.2353 1
+     position 84 42
+     size 244 38
+     hexactpos 1
+     vexactpos 1
+     hexactsize 1
+     vexactsize 1
+     text "The hacking of Large Tent has Started"
+     font "HackingMod/GUI/Fonts/DogicaPixel/DogicaPixel14"
+     "text color" 0.0784 0.7059 0.2353 1
+     "exact text" 0
+     "size to text h" 0
+     "size to text v" 0
+     wrap 1
+    }
+   }
+  }
+ }
+}

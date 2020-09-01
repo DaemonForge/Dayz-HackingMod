@@ -88,6 +88,7 @@ class DecoderTablet extends ItemBase{
 	void StartHackServer(ItemBase HackingTarget, PlayerBase Hacker){
 		PlayerBase hacker = PlayerBase.Cast(Hacker);
 		ItemBase hackingTarget = ItemBase.Cast(HackingTarget);
+		string heading = "HACK STARTED";
 		string resumed = " has started";
 		if (hacker && hackingTarget){
 			m_HackingCompleted = false;
@@ -105,15 +106,18 @@ class DecoderTablet extends ItemBase{
 				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
 					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") has started hacking " + hackingTarget.GetType() + " with ID: " + HackID + " at " + hackingTarget.GetPosition());
 				}
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") has started hacking " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition());
 			} else {
 				this.HackInit(GetHackID());
 				hackingTarget.HackInit(GetHackID());
+				heading = "HACK RESUMED";
 				resumed = " has resumed";
 				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
 					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") has resumed hacking " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition());
 				}
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") has resumed hacking " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition());
 			}
-			SendPlayerMessage(hacker, "Hack Started", "The hacking of " + hackingTarget.GetDisplayName() + resumed);
+			SendPlayerMessage(hacker, heading, "The hacking of " + hackingTarget.GetDisplayName() + resumed);
 			GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(this.CheckHackProgress, 2000, false, hackingTarget, hacker);
 			SetSynchDirty();
 		}
@@ -136,26 +140,30 @@ class DecoderTablet extends ItemBase{
 					if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
 						Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to Missing Batteries");
 					}
+					GetGame().AdminLog("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to Missing Batteries");
 				}
 				if (!codelock.GetLockState()){
 					m_HackingInterrupted = true;
 					if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
 						Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock being unlocked");
 					}
+					GetGame().AdminLog("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock being unlocked");
 				}
-				float DoInterrupt = Math.RandomFloat(0,1);
-				float InterruptChance = hackingData.ChanceOfInterrupt;
+				float DoInterrupt = Math.RandomFloat(0,1000);
+				float InterruptChance = hackingData.ChanceOfInterrupt * 1000;
 				if (DoInterrupt < InterruptChance){
 					m_HackingInterrupted = true;
 					if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
 						Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to interrupt Chance");
 					}
+					GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to interrupt Chance");
 				}
 			} else { //Code Lock Removed
 				m_HackingInterrupted = true;
 				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
 					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock missing");
 				}
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock missing");
 			}
 			if (!m_HackingInterrupted && !hackingTarget.IsRuined() && vector.Distance(hackingTarget.GetPosition(), hacker.GetPosition()) < 10 && hacker.GetItemInHands() == this){
 				m_HackTimeRemaining = m_HackTimeRemaining - 2000;
@@ -171,7 +179,7 @@ class DecoderTablet extends ItemBase{
 				hackingTarget.InterruptHack();
 				this.InterruptHack();
 				m_HackingInterrupted = true;
-				SendPlayerMessage(hacker, "Hack Interrupted", "The hacking of " + hackingTarget.GetDisplayName() + " has been interrupted");
+				SendPlayerMessage(hacker, "HACK INTERRUPTED", "The hacking of " + hackingTarget.GetDisplayName() + " has been interrupted");
 			}
 		}else{
 			m_HackingStarted = false;
@@ -197,10 +205,14 @@ class DecoderTablet extends ItemBase{
 					if (hacker.GetIdentity()){
 						GetHeroesAndBandits().NewPlayerAction(hacker.GetIdentity().GetPlainId(), "Hack" + hackingData.Type + "Raid");
 					}
+				
 				#endif
 				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
 					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") Hacked  " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition());
 				}
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") Hacked  " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition());
+				
+					
 				this.AddHealth("", "Health", -hackingData.TabletDamage);
 				DestoryBatteries( hackingData.Batteries );
 				
@@ -216,7 +228,7 @@ class DecoderTablet extends ItemBase{
 			m_TabletON = false;
 		}
 		if (m_HackingCompleted){
-			SendPlayerMessage(Hacker, "Hack Finished", "The hacking of " + hackingTarget.GetDisplayName() + " has finished");
+			SendPlayerMessage(Hacker, "HACK FINISHED", "The hacking of " + hackingTarget.GetDisplayName() + " has finished");
 		}
 		SetSynchDirty();
 	}
@@ -299,7 +311,7 @@ class DecoderTablet extends ItemBase{
 			loadingsuccessfull = false;
 		}
 		
-		if ( loadingsuccessfull && m_HackingStarted && m_HackTimeRemaining > 0 && !m_HackingCompleted ){
+		if ( loadingsuccessfull && m_HackTimeRemaining > 0 && !m_HackingCompleted ){
 			m_HackingInterrupted = true;
 		}
 		
@@ -433,12 +445,18 @@ class DecoderTablet extends ItemBase{
 	}
 	
 	void SendPlayerMessage(PlayerBase hacker, string heading, string text){
+		string Heading = heading;
+		string Message = text;
 		PlayerBase Hacker = PlayerBase.Cast(hacker);
-		if (Hacker.GetIdentity()){
-			string Heading = heading;
-			string Message = text;
-			string Icon = "HackingMod/GUI/Images/hacking.paa";
-			HackingModNotifications.CreateNotification(new ref StringLocaliser(Heading), new ref StringLocaliser(Message), Icon, -938286307, 15, Hacker.GetIdentity());
+		string NotificationIcon = "HackingMod/GUI/Images/hacking.paa";
+		if (Hacker.GetIdentity() && GetHackingModConfig().Notification == 0){
+			HackingModNotifications.CreateNotification(new ref StringLocaliser(Heading), new ref StringLocaliser(Message), NotificationIcon, -938286307, 8, Hacker.GetIdentity());
+		} else if (Hacker.GetIdentity() && (GetHackingModConfig().Notification == 1 ||  GetHackingModConfig().Notification == 2)){
+			GetRPCManager().SendRPC("HACK", "RPCHackingModNotifcation", new Param3< string, string, float >( Heading, Message, 8 ), true, Hacker.GetIdentity());
+		} else if ( Hacker.GetIdentity() && GetHackingModConfig().Notification == 3){
+			#ifdef VPPNOTIFICATIONS
+				g_Game.SendMessage( false, Hacker.GetIdentity(), Heading, Message, 10, 2, false, true, NotificationIcon, 64, 64);
+			#endif
 		}
 	}
 	
