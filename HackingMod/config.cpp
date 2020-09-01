@@ -103,7 +103,7 @@ class CfgVehicles
 		displayName  = "Decoder Tablet";
 		descriptionShort  = "A Tablet Used for hacking into buildings or tents protected by a code lock";
 		model = "HackingMod\Data\DecoderTablet.p3d";
-		itemSize[] = {3,2};
+		itemSize[] = {4,3};
 		weight = 800;
 		rotationFlags = 1;
 		attachments[] = {"Att_TabletBattery_1", "Att_TabletBattery_2", "Att_TabletBattery_3","Att_TabletBattery_4","Att_TabletBattery_5"};

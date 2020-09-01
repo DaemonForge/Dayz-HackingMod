@@ -15,7 +15,7 @@ class HackingModConfig
 	
 	// Load config file or create default file if config doesn't exsit
 	void Load(){
-		if(GetGame().IsServer()){
+		if (GetGame().IsServer()){
 			if (FileExist(HackingModConfigPATH)){ //If config exist load File
 				JsonFileLoader<HackingModConfig>.JsonLoadFile(HackingModConfigPATH, this);
 			}else{ //File does not exist create file
