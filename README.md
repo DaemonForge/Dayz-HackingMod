@@ -1,5 +1,5 @@
 # Hacking Mod
- 
+This is a DayZ mod that allows for the hacking of the code locks from room service.
  
 ### Repacking/Building from Source Code Rules
 For anyone interested in repacking please read all this
