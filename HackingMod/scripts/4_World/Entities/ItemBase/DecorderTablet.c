@@ -11,6 +11,10 @@ class DecoderTablet extends ItemBase{
 	protected bool m_TabletONLocal = false;
 	
 	protected float m_HackTimeRemaining;
+	
+	protected float HackingRadius = 10;
+	
+	protected bool RequireInHands = true;
 		
 	override void SetActions()
 	{
@@ -23,9 +27,9 @@ class DecoderTablet extends ItemBase{
 		
 	}
 	
-	void ~DecoderTablet()
-	{
-		
+	void ~DecoderTablet(){
+		GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).Remove(this.CheckHackProgress);
+		GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).Remove(this.HackCompleted);
 	}
 
 	bool HasHackingStarted(){
@@ -74,7 +78,7 @@ class DecoderTablet extends ItemBase{
 	
 	void HackInterruptedClient(){
 		m_HackingInterruptedLocal = m_HackingInterrupted;
-		SEffectManager.PlaySoundOnObject("landmine_end_SoundSet", this);
+		SEffectManager.PlaySoundOnObject("landmine_loop_SoundSet", this);
 		SetAnimationPhase("top",0);
 	}
 	
@@ -100,7 +104,7 @@ class DecoderTablet extends ItemBase{
 				
 				int HackID = GetGame().GetTime();
 				HackID = HackID * 10000;
-				HackID = HackID + Math.RandomInt(0,10000);
+				HackID = HackID + Math.RandomInt(0,99999);
 				this.HackInit(HackID);
 				hackingTarget.HackInit(HackID);
 				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
@@ -128,44 +132,70 @@ class DecoderTablet extends ItemBase{
 		SEffectManager.PlaySoundOnObject("defibrillator_ready_SoundSet", this);
 	}
 	
-	void CheckHackProgress(ItemBase HackingTarget, PlayerBase Hacker){
+	bool CheckHackInterrupt(ItemBase HackingTarget, PlayerBase Hacker){
+		bool IsInterrupted = false;
 		PlayerBase hacker = PlayerBase.Cast(Hacker);
 		ItemBase hackingTarget = ItemBase.Cast(HackingTarget);
 		if (hacker && hackingTarget){
             CodeLock codelock = CodeLock.Cast(hackingTarget.GetAttachmentByConfigTypeName("CodeLock"));
 			HackableItem hackingData = GetHackingModConfig().GetHackableItem( hackingTarget.GetType() );
             if ( codelock && hackingData.Type != "") {
-				if (!GetHackingModConfig().CanHack( hackingTarget.GetType(), this.CountBatteries())){
-					m_HackingInterrupted = true;
-					if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
-						Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to Missing Batteries");
-					}
-					GetGame().AdminLog("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to Missing Batteries");
-				}
 				if (!codelock.GetLockState()){
-					m_HackingInterrupted = true;
-					if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
-						Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock being unlocked");
-					}
-					GetGame().AdminLog("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock being unlocked");
-				}
-				float DoInterrupt = Math.RandomFloat(0,1000);
-				float InterruptChance = hackingData.ChanceOfInterrupt * 1000;
-				if (DoInterrupt < InterruptChance){
-					m_HackingInterrupted = true;
-					if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
-						Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to interrupt Chance");
-					}
-					GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to interrupt Chance");
+					//Code Lock not locked
+					IsInterrupted = true;
+					GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock being unlocked");
 				}
 			} else { //Code Lock Removed
-				m_HackingInterrupted = true;
-				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
-					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock missing");
-				}
+				IsInterrupted = true;
 				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to codelock missing");
 			}
-			if (!m_HackingInterrupted && !hackingTarget.IsRuined() && vector.Distance(hackingTarget.GetPosition(), hacker.GetPosition()) < 10 && hacker.GetItemInHands() == this){
+			//Missing Batteries
+			if (!GetHackingModConfig().CanHack( hackingTarget.GetType(), this.CountBatteries())){
+				IsInterrupted = true;
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to Missing Batteries");
+			}
+			//Random Chance Calcuations
+			float DoInterrupt = Math.RandomFloat(0,1000);
+			float InterruptChance = hackingData.ChanceOfInterrupt * 1000;
+			if (DoInterrupt < InterruptChance){
+				IsInterrupted = true;
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to interrupt Chance");
+			}
+			//Tablet is in hands
+			if (hacker.GetItemInHands() != this && RequireInHands){
+				IsInterrupted = true;
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to tablet dropped from hands");
+			}
+			//Hacker Left Radius
+			if (vector.Distance(hackingTarget.GetPosition(), hacker.GetPosition()) > HackingRadius){
+				IsInterrupted = true;
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to Hacker Leaving the hacking radius");
+			}
+			//Tablet is ruined
+			if (this.IsRuined()){
+				IsInterrupted = true;
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to Tablet Being Destroyed");
+			}
+			//Player has Disconnected
+			if (hacker.IsPlayerDisconnected()){
+				IsInterrupted = true;
+				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to Player Disconected");
+			}
+		} else {
+			//This shouldn't happen, but Player and Target are inviald
+			IsInterrupted = true;
+			GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") had their hacking of " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition() + " Interrupted due to invalid Target or Player");
+		}
+		return IsInterrupted;
+	}
+	
+	
+	void CheckHackProgress(ItemBase HackingTarget, PlayerBase Hacker){
+		ItemBase hackingTarget = ItemBase.Cast(HackingTarget);
+		PlayerBase hacker = PlayerBase.Cast(Hacker);
+		if (hackingTarget && hacker){
+           	m_HackingInterrupted = CheckHackInterrupt(hackingTarget, hacker);
+			if (!m_HackingInterrupted){
 				m_HackTimeRemaining = m_HackTimeRemaining - 2000;
 				if (m_HackTimeRemaining > 2000){
 					GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).CallLater(this.CheckHackProgress, 2000, false, hackingTarget, hacker);
@@ -178,7 +208,6 @@ class DecoderTablet extends ItemBase{
 			} else {
 				hackingTarget.InterruptHack();
 				this.InterruptHack();
-				m_HackingInterrupted = true;
 				SendPlayerMessage(hacker, "HACK INTERRUPTED", "The hacking of " + hackingTarget.GetDisplayName() + " has been interrupted");
 			}
 		}else{
@@ -205,13 +234,11 @@ class DecoderTablet extends ItemBase{
 					if (hacker.GetIdentity()){
 						GetHeroesAndBandits().NewPlayerAction(hacker.GetIdentity().GetPlainId(), "Hack" + hackingData.Type + "Raid");
 					}
-				
 				#endif
 				if (hacker.GetIdentity() && GetHackingModConfig().ScriptLogging){
 					Print("[HackingMod][Raid] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") Hacked  " + hackingTarget.GetType() + " with ID: " + GetHackID() + " at " + hackingTarget.GetPosition());
 				}
 				GetGame().AdminLog("[HackingMod][Raid][ID:" + GetHackID() + "] " + hacker.GetIdentity().GetName() + "(" +  hacker.GetIdentity().GetPlainId() + ") Hacked  " + hackingTarget.GetType() + " at " + hackingTarget.GetPosition());
-				
 					
 				this.AddHealth("", "Health", -hackingData.TabletDamage);
 				DestoryBatteries( hackingData.Batteries );
@@ -233,12 +260,6 @@ class DecoderTablet extends ItemBase{
 		SetSynchDirty();
 	}
 	
-	override void EEHitBy(TotalDamageResult damageResult, int damageType, EntityAI source, int component, string dmgZone, string ammo, vector modelPos, float speedCoef)
-	{
-		super.EEHitBy(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);	
-		AddHealth( "GlobalHealth", "Health", -damageResult.GetDamage( "", "Health" ) );
-	}
-
 	void TurnOnTablet(){
 		m_TabletON = true;
 		m_TabletONLocal = true;
@@ -270,8 +291,7 @@ class DecoderTablet extends ItemBase{
 		}
 	}
 	
-	override void OnStoreSave(ParamsWriteContext ctx)
-	{
+	override void OnStoreSave(ParamsWriteContext ctx){
 		super.OnStoreSave( ctx );
 		
 		ctx.Write( m_HackingStarted );
@@ -283,8 +303,7 @@ class DecoderTablet extends ItemBase{
 
 	
 
-	override bool OnStoreLoad( ParamsReadContext ctx, int version )
-	{
+	override bool OnStoreLoad( ParamsReadContext ctx, int version ){
 		if ( !super.OnStoreLoad( ctx, version ) )
 		{
 			return false;
@@ -320,8 +339,7 @@ class DecoderTablet extends ItemBase{
 		return loadingsuccessfull;
 	}
 	
-	override void AfterStoreLoad()
-	{	
+	override void AfterStoreLoad(){	
 		super.AfterStoreLoad();
 		
 		if (m_TabletON){
@@ -432,8 +450,7 @@ class DecoderTablet extends ItemBase{
 		}
 	}
 	
-	override void EEItemDetached(EntityAI item, string slot_name)
-	{
+	override void EEItemDetached(EntityAI item, string slot_name){
 		super.EEItemDetached(item, slot_name);
 		if (GetGame().IsServer() && (slot_name == "Att_TabletBattery_1" || slot_name == "Att_TabletBattery_2" || slot_name == "Att_TabletBattery_3"  || slot_name == "Att_TabletBattery_5"  || slot_name == "Att_TabletBattery_5")){
 			if (CountBatteries() == 0){
@@ -441,7 +458,6 @@ class DecoderTablet extends ItemBase{
 				SetSynchDirty();
 			}
 		}
-		
 	}
 	
 	void SendPlayerMessage(PlayerBase hacker, string heading, string text){
@@ -455,7 +471,7 @@ class DecoderTablet extends ItemBase{
 			GetRPCManager().SendRPC("HACK", "RPCHackingModNotifcation", new Param3< string, string, float >( Heading, Message, 8 ), true, Hacker.GetIdentity());
 		} else if ( Hacker.GetIdentity() && GetHackingModConfig().Notification == 3){
 			#ifdef VPPNOTIFICATIONS
-				g_Game.SendMessage( false, Hacker.GetIdentity(), Heading, Message, 10, 2, false, true, NotificationIcon, 64, 64);
+				g_Game.SendMessage( false, Hacker.GetIdentity(), Heading, Message, 10, 2, false, true, NotificationIcon, 32, 32);
 			#endif
 		}
 	}

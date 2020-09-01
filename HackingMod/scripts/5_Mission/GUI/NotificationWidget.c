@@ -16,9 +16,9 @@ class HackingModNotificationWidget
     {
 		m_Root 			= GetGame().GetWorkspace().CreateWidgets("HackingMod/GUI/Layouts/HackingNotification.layout");
 		m_Notification	= Widget.Cast( m_Root.FindAnyWidget( "Notification" ) );
-		m_Icon	= ImageWidget.Cast( m_Root.FindAnyWidget( "Icon" ) );
-		m_Heading	= TextWidget.Cast( m_Root.FindAnyWidget( "Heading" ) );
-		m_Message	= MultilineTextWidget.Cast( m_Root.FindAnyWidget( "Message" ) );
+		m_Icon	        = ImageWidget.Cast( m_Root.FindAnyWidget( "Icon" ) );
+		m_Heading	    = TextWidget.Cast( m_Root.FindAnyWidget( "Heading" ) );
+		m_Message	    = MultilineTextWidget.Cast( m_Root.FindAnyWidget( "Message" ) );
     }
 
 	void ~HackingModNotificationWidget()
@@ -81,7 +81,7 @@ class HackingModNotificationWidget
 		}
 	}
 	
-	void ProccessOut()	{
+	void ProccessOut() {
 		
 		if (m_notificationAlpha >= 0.029){
 			m_notificationAlpha = m_notificationAlpha - 0.028;

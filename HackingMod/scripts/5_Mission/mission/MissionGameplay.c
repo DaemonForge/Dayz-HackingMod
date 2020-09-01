@@ -24,11 +24,11 @@ modded class MissionGameplay extends MissionBase
 		string Heading = data.param1;
 		string Message = data.param2;
 		float MessageTime = data.param3;
-		if (GetHackingModConfig().Notification == 1){
+		if (GetHackingModConfig().Notification == 1) {
 			GetGame().Chat( Message, "colorAction");
 		} else if (GetHackingModConfig().Notification == 2) {
 			int LastIndex = HackingNotifications.Count() - 1;
-			if (HackingNotifications.Count() > 1){
+			if (HackingNotifications.Count() > 1) {
 				HackingNotifications.Get(LastIndex).EarlyProccess();
 			}
 			int nextIndex = HackingNotifications.Count();
