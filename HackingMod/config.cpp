@@ -32,6 +32,7 @@ class CfgMods
 					"HackingMod/scripts/3_Game"
 					};
             };
+			
 			class worldScriptModule
             {
                 value="";

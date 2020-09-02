@@ -7,10 +7,9 @@ class HackingModConfig
 	// 0 - Native Notification
 	// 1 - Chat Notification
 	// 2 - BuiltIn Notification
-	// 3 - VPP Notification
 	int Notification = 2; 
 	ref array<ref HackableItem> HackableItems = new ref array<ref HackableItem>;
-	bool ScriptLogging = true;
+	bool ScriptLogging = false;
 		
 	
 	// Load config file or create default file if config doesn't exsit
@@ -76,9 +75,7 @@ class HackingModConfig
 	}
 };
 
-
 class HackableItem {
-	
 	string Type = "";
 	float StartTime = 90;
 	float HackingTime = 600;
@@ -93,5 +90,4 @@ class HackableItem {
 		HackingTime = time;
 		Batteries = bat;
 	}
-
 };

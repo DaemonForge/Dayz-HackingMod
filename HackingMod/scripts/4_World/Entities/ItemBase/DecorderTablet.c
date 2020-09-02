@@ -467,12 +467,9 @@ class DecoderTablet extends ItemBase{
 		string NotificationIcon = "HackingMod/GUI/Images/hacking.paa";
 		if (Hacker.GetIdentity() && GetHackingModConfig().Notification == 0){
 			HackingModNotifications.CreateNotification(new ref StringLocaliser(Heading), new ref StringLocaliser(Message), NotificationIcon, -938286307, 8, Hacker.GetIdentity());
-		} else if (Hacker.GetIdentity() && (GetHackingModConfig().Notification == 1 ||  GetHackingModConfig().Notification == 2)){
+		}
+		if (Hacker.GetIdentity() && (GetHackingModConfig().Notification == 1 ||  GetHackingModConfig().Notification == 2)){
 			GetRPCManager().SendRPC("HACK", "RPCHackingModNotifcation", new Param3< string, string, float >( Heading, Message, 8 ), true, Hacker.GetIdentity());
-		} else if ( Hacker.GetIdentity() && GetHackingModConfig().Notification == 3){
-			#ifdef VPPNOTIFICATIONS
-				g_Game.SendMessage( false, Hacker.GetIdentity(), Heading, Message, 10, 2, false, true, NotificationIcon, 32, 32);
-			#endif
 		}
 	}
 	
