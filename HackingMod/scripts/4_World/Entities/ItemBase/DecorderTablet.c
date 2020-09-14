@@ -28,8 +28,9 @@ class DecoderTablet extends ItemBase{
 	}
 	
 	void ~DecoderTablet(){
-		GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).Remove(this.CheckHackProgress);
-		GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).Remove(this.HackCompleted);
+		if (m_HackingStarted && !m_HackingInterrupted && !m_HackingCompleted){ // to make less null pointers
+			GetGame().GetCallQueue( CALL_CATEGORY_SYSTEM ).Remove(this.CheckHackProgress); 
+		}
 	}
 
 	bool HasHackingStarted(){
