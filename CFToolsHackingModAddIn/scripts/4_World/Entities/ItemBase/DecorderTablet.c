@@ -9,7 +9,7 @@ modded class DecoderTablet extends ItemBase{
 			string request_json, response_raw, error;
 
 			ItemDestroyedData request = new ItemDestroyedData(api.get_config());
-			request.update(player, hackingTarget.GetDisplayName(), this.GetDisplayName());
+			request.update(hacker, hackingTarget.GetDisplayName(), this.GetDisplayName());
 
 			api.json.WriteToString(request, false, request_json);
 
