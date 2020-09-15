@@ -1,4 +1,4 @@
-class DecoderTablet extends ItemBase{
+modded class DecoderTablet extends ItemBase{
 	void HackCompleted(ItemBase HackingTarget, PlayerBase Hacker){
 		super.HackCompleted( HackingTarget, Hacker)
 		PlayerBase hacker = PlayerBase.Cast(Hacker);
