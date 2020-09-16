@@ -3,18 +3,18 @@ modded class DecoderTablet extends ItemBase{
 		super.HackCompleted( HackingTarget, Hacker)
 		PlayerBase hacker = PlayerBase.Cast(Hacker);
 		ItemBase hackingTarget = ItemBase.Cast(HackingTarget);
-        if (hackingTarget && hacker && m_HackingCompleted) {
+			if (hackingTarget && hacker && m_HackingCompleted) {
 
-			CFAPI api = GetDayZGame().GetCFAPI();
-			string request_json, response_raw, error;
+				CFAPI api = GetDayZGame().GetCFAPI();
+				string request_json, response_raw, error;
 
-			ItemDestroyedData request = new ItemDestroyedData(api.get_config());
-			request.update(hacker, hackingTarget.GetDisplayName(), this.GetDisplayName());
+				ItemDestroyedData request = new ItemDestroyedData(api.get_config());
+				request.update(hacker, hackingTarget.GetDisplayName(), this.GetDisplayName());
 
-			api.json.WriteToString(request, false, request_json);
+				api.json.WriteToString(request, false, request_json);
 
-			api.get_context().POST(new CFAPIItemHacked, api.build_url("item", "destroyed", "1"), request_json);
-        }
+				api.get_context().POST(new CFAPIItemHacked, api.build_url("item", "destroyed", "1"), request_json);
+			}
 	}
 	
 };
