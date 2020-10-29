@@ -75,6 +75,8 @@ class HackingModConfig
 	}
 };
 
+
+
 class HackableItem {
 	string Type = "";
 	float StartTime = 90;

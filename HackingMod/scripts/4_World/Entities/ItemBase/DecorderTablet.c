@@ -137,7 +137,7 @@ class DecoderTablet extends ItemBase{
 		bool IsInterrupted = false;
 		PlayerBase hacker = PlayerBase.Cast(Hacker);
 		ItemBase hackingTarget = ItemBase.Cast(HackingTarget);
-		if (hacker && hackingTarget){
+		if (hacker && hacker.GetIdentity() && hackingTarget){
             CodeLock codelock = CodeLock.Cast(hackingTarget.GetAttachmentByConfigTypeName("CodeLock"));
 			HackableItem hackingData = GetHackingModConfig().GetHackableItem( hackingTarget.GetType() );
             if ( codelock && hackingData.Type != "") {

@@ -4,6 +4,7 @@ class CfgPatches
 	{
 		requiredVersion=0.1;
 		requiredAddons[]={
+			"HackingModDefines",
 			"DZ_Data"
 		};
 	};
@@ -28,7 +29,6 @@ class CfgMods
             {
 				value = "";
                 files[]={
-					"HackingMod/scripts/Common",
 					"HackingMod/scripts/3_Game"
 					};
             };
@@ -37,7 +37,6 @@ class CfgMods
             {
                 value="";
                 files[]={ 
-					"HackingMod/scripts/Common",
 					"HackingMod/scripts/4_World" 
 				};
             };
@@ -46,7 +45,6 @@ class CfgMods
             {
                 value="";
                 files[]={
-					"HackingMod/scripts/Common",
 					"HackingMod/scripts/5_Mission" 
 				};
             };
