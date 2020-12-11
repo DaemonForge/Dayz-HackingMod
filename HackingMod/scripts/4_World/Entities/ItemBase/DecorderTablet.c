@@ -224,7 +224,7 @@ class DecoderTablet extends ItemBase{
 		float itemMaxHealth = 0;
         if (hackingTarget && hacker) {
             CodeLock codelock = CodeLock.Cast(hackingTarget.GetAttachmentByConfigTypeName("CodeLock"));
-			HackableItem hackingData = GetHackingModConfig().GetHackableItem( hackingTarget.GetType());
+			HackableItem hackingData = GetHackingModConfig().GetHackableItem( hackingTarget.GetType() );
             if ( codelock && hackingData.Type != "") {
 				itemMaxHealth = codelock.GetMaxHealth("", "Health");
 				itemMaxHealth++;
