@@ -3,25 +3,17 @@ modded class MissionServer extends MissionBase
 	override void OnInit()
 	{
 		super.OnInit();
+		Print("[HackingMod] OnInit");
 		GetHackingModConfig();
+		GetRPCManager().AddRPC( "HACK", "RPCHackingModSettings", this, SingeplayerExecutionType.Both );
 	}
 	
-	override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity)
+	
+	void RPCHackingModSettings( CallType type, ref ParamsReadContext ctx, ref PlayerIdentity sender, ref Object target )
 	{
-		super.InvokeOnConnect(player, identity);
-		if ( identity )
-		{
-			string playerID = identity.GetPlainId();
-			GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLaterByName(this, "SendHackingModSettings", 1800, false, new Param1<ref PlayerBase >( player ));
-			GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLaterByName(this, "SendHackingModSettings", 4000, false, new Param1<ref PlayerBase >( player ));
-		}
-	}
-			
-	void SendHackingModSettings( PlayerBase player ){
-		if (player.IsPlayerDisconnected()) { return; }
-		PlayerIdentity identity = player.GetIdentity();
-		if (identity){
-			GetRPCManager().SendRPC("HACK", "RPCHackingModSettings", new Param1< HackingModConfig >( GetHackingModConfig() ), true, identity);
+		PlayerIdentity RequestedBy = PlayerIdentity.Cast(sender);
+		if (RequestedBy){
+			GetRPCManager().SendRPC("HACK", "RPCHackingModSettings", new Param1< HackingModConfig >( GetHackingModConfig() ), true, RequestedBy);
 		}
 	}
 	

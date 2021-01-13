@@ -8,6 +8,13 @@ modded class MissionGameplay extends MissionBase
 		GetRPCManager().AddRPC( "HACK", "RPCHackingModNotifcation", this, SingeplayerExecutionType.Both );
 	}
 	
+	override void OnMissionStart(){
+		super.OnMissionStart();
+		Print("[HackingMod][Client] Requesting Settings From Server");
+		GetRPCManager().SendRPC("HACK", "RPCHackingModSettings", new Param1< HackingModConfig >( NULL ), true, NULL);
+	}
+	
+	
 	void RPCHackingModSettings( CallType type, ref ParamsReadContext ctx, ref PlayerIdentity sender, ref Object target )
 	{
 		Param1< HackingModConfig > data  //Player ID, Icon
