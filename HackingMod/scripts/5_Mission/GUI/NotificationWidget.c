@@ -1,10 +1,10 @@
-class HackingModNotificationWidget
+class HackingModNotificationWidget extends Managed
 {	
-	protected ref Widget				m_Root;
-	protected ref Widget				m_Notification;
-	protected ref ImageWidget			m_Icon;
-	protected ref TextWidget			m_Heading;
-	protected ref MultilineTextWidget	m_Message;
+	protected Widget				m_Root;
+	protected Widget				m_Notification;
+	protected ImageWidget			m_Icon;
+	protected TextWidget			m_Heading;
+	protected MultilineTextWidget	m_Message;
 	
 	protected float 			m_notificationX;
 	protected float 			m_notificationY;
@@ -14,7 +14,7 @@ class HackingModNotificationWidget
 	
 	void HackingModNotificationWidget()
     {
-		m_Root 			= GetGame().GetWorkspace().CreateWidgets("HackingMod/GUI/Layouts/HackingNotification.layout");
+		m_Root 			= Widget.Cast(GetGame().GetWorkspace().CreateWidgets("HackingMod/GUI/Layouts/HackingNotification.layout"));
 		m_Notification	= Widget.Cast( m_Root.FindAnyWidget( "Notification" ) );
 		m_Icon	        = ImageWidget.Cast( m_Root.FindAnyWidget( "Icon" ) );
 		m_Heading	    = TextWidget.Cast( m_Root.FindAnyWidget( "Heading" ) );

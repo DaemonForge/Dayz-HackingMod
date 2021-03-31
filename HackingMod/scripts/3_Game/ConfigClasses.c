@@ -8,7 +8,7 @@ class HackingModConfig
 	// 1 - Chat Notification
 	// 2 - BuiltIn Notification
 	int Notification = 2; 
-	ref array<ref HackableItem> HackableItems = new ref array<ref HackableItem>;
+	ref array<ref HackableItem> HackableItems = new array<ref HackableItem>;
 	bool ScriptLogging = false;
 		
 	
@@ -18,11 +18,11 @@ class HackingModConfig
 			if (FileExist(HackingModConfigPATH)){ //If config exist load File
 				JsonFileLoader<HackingModConfig>.JsonLoadFile(HackingModConfigPATH, this);
 			}else{ //File does not exist create file
-				HackableItems.Insert( new ref HackableItem("tent", 45, 600, 1));
-				HackableItems.Insert( new ref HackableItem("fence", 60, 600, 2));
-				HackableItems.Insert( new ref HackableItem("bbp_t1", 60, 900, 2));
-				HackableItems.Insert( new ref HackableItem("bbp_t2", 90, 1200, 3));
-				HackableItems.Insert( new ref HackableItem("bbp_t3", 120, 1800, 5));
+				HackableItems.Insert( new HackableItem("tent", 45, 600, 1));
+				HackableItems.Insert( new HackableItem("fence", 60, 600, 2));
+				HackableItems.Insert( new HackableItem("bbp_t1", 60, 900, 2));
+				HackableItems.Insert( new HackableItem("bbp_t2", 90, 1200, 3));
+				HackableItems.Insert( new HackableItem("bbp_t3", 120, 1800, 5));
 				Save();
 			}
 		} else {
@@ -96,10 +96,8 @@ class HackableItem {
 
 ref HackingModConfig m_HackingModConfig;
 
-ref NotificationSystem HackingModNotifications = new ref NotificationSystem();
-
 //Helper function to return Config
-static ref HackingModConfig GetHackingModConfig()
+static HackingModConfig GetHackingModConfig()
 {
 	if (!m_HackingModConfig)
 	{

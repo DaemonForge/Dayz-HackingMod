@@ -467,7 +467,7 @@ class DecoderTablet extends ItemBase{
 		PlayerBase Hacker = PlayerBase.Cast(hacker);
 		string NotificationIcon = "HackingMod/GUI/Images/hacking.paa";
 		if (Hacker.GetIdentity() && GetHackingModConfig().Notification == 0){
-			HackingModNotifications.CreateNotification(new ref StringLocaliser(Heading), new ref StringLocaliser(Message), NotificationIcon, -938286307, 8, Hacker.GetIdentity());
+			NotificationSystem.CreateNotification(new StringLocaliser(Heading), new StringLocaliser(Message), NotificationIcon, -938286307, 8, Hacker.GetIdentity());
 		}
 		if (Hacker.GetIdentity() && (GetHackingModConfig().Notification == 1 ||  GetHackingModConfig().Notification == 2)){
 			GetRPCManager().SendRPC("HACK", "RPCHackingModNotifcation", new Param3< string, string, float >( Heading, Message, 8 ), true, Hacker.GetIdentity());

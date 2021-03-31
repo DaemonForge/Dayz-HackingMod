@@ -9,7 +9,7 @@ modded class MissionServer extends MissionBase
 	}
 	
 	
-	void RPCHackingModSettings( CallType type, ref ParamsReadContext ctx, ref PlayerIdentity sender, ref Object target )
+	void RPCHackingModSettings( CallType type, ParamsReadContext ctx, PlayerIdentity sender, Object target )
 	{
 		PlayerIdentity RequestedBy = PlayerIdentity.Cast(sender);
 		if (RequestedBy){
